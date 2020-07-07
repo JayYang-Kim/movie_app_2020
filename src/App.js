@@ -1,34 +1,68 @@
 import React from 'react';
+import axios from 'axios';
+import Movie from './Movie';
+import './App.css';
 
 class App extends React.Component {
   state = {
-    count: 0
-  };
-
-  add = () => {
-    // this.setState({count: this.state.count + 1});
-    this.setState(current => ({
-      count: current.count + 1
-    }));
-    console.log('add');
+    isLoading: true,
+    movie_count: 0,
+    movies: []
   }
 
-  minus = () => {
-    // this.setState({count: this.state.count - 1});
-    this.setState(current => ({
-      count: current.count - 1
-    }));
-    console.log('minus');
+  getMoives = async () => {
+    const {
+      data: {
+        data: { movies },
+      },
+    } = await axios.get('https://yts-proxy.now.sh/list_movies.json?sort_by=rating');
+    const {
+      data: {
+        data: { movie_count },
+      },
+    } = await axios.get('https://yts-proxy.now.sh/list_movies.json?sort_by=rating');
+    //console.log(movies);
+    this.setState({ movies, movie_count, isLoading: false });
+    //console.log(this.state.movie_count);
+  }
+
+  componentDidMount() {
+    // 영화 데이터 로딩 영역
+    this.getMoives();
+
+    // setTimeout(() => {
+    //   this.setState({isLoading : false});
+    // }, 6000);
   }
 
   render() {
-    // return <h1>The number is: {this.state.count}</h1>;
+    const { isLoading, movies, movie_count } = this.state;
     return (
-      <div>
-        <h1>The number is: {this.state.count}</h1>
-        <button onClick={this.add}>Add</button>
-        <button onClick={this.minus}>Minus</button>
-      </div>
+      <section className="container">
+        {isLoading
+          ? (
+            <div className="loader">
+              <span className="loader_text">Loading...</span>
+            </div>
+          )
+          : (
+            <div className="movies">
+              <div className="movie_count">MOVIE COUNT : {movie_count}</div>
+              {movies.map(movie => (
+                <Movie
+                  key={movie.id}
+                  id={movie.id}
+                  year={movie.year}
+                  title={movie.title}
+                  summary={movie.summary}
+                  poster={movie.medium_cover_image}
+                  genres={movie.genres}
+                />
+              ))}
+            </div>
+          )
+        }
+      </section>
     )
   }
 }
